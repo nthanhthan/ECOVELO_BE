@@ -4,8 +4,6 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
@@ -15,7 +13,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "bicycle")
 public class BicycleModel {
-	public BicycleModel(int id_bicycle, String locate, boolean status, boolean is_using,
+	public BicycleModel(String id_bicycle, String locate, boolean status, boolean is_using,
 			BicycleStationModel bicycleStation, List<RentBicycleModel> rentBicycleModels) {
 		super();
 		this.id_bicycle = id_bicycle;
@@ -29,8 +27,7 @@ public class BicycleModel {
 		
 	}
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id_bicycle;
+	private String  id_bicycle;
 	
 	@Column(nullable = false)
 	private String locate;
@@ -48,10 +45,10 @@ public class BicycleModel {
 	@OneToMany(mappedBy = "bicycleModel")
 	private List<RentBicycleModel> rentBicycleModels;
 	
-	public int getId_bicycle() {
+	public String getId_bicycle() {
 		return id_bicycle;
 	}
-	public void setId_bicycle(int id_bicycle) {
+	public void setId_bicycle(String id_bicycle) {
 		this.id_bicycle = id_bicycle;
 	}
 	public String getLocate() {
