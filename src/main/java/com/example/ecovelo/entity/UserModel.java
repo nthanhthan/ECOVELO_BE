@@ -17,7 +17,7 @@ public class UserModel {
 	public UserModel(int id_user, String name_user, String email, boolean sex, float money, boolean is_verify,
 			AccountModel accountModel, PersonalLegalUserModel personalLegalUserModel,
 			List<TransactionHistoryModel> transactionHistories, List<UserVoucherModel> userVouchers,
-			List<RentBicycleModel> rentBicycleModels) {
+			List<RentBicycleModel> rentBicycleModels, List<ReportProblem> listReportProblems) {
 		super();
 		this.id_user = id_user;
 		this.name_user = name_user;
@@ -30,6 +30,7 @@ public class UserModel {
 		this.transactionHistories = transactionHistories;
 		this.userVouchers = userVouchers;
 		this.rentBicycleModels = rentBicycleModels;
+		this.listReportProblems = listReportProblems;
 	}
 	public UserModel() {}
 	@Id
@@ -65,6 +66,9 @@ public class UserModel {
 	
 	@OneToMany(mappedBy = "userModelRent")
 	private List<RentBicycleModel> rentBicycleModels;
+	
+	@OneToMany(mappedBy = "userModelReport")
+	private List<ReportProblem> listReportProblems;
 	
 	public int getId_user() {
 		return id_user;
@@ -145,6 +149,12 @@ public class UserModel {
 
 	public void setRentBicycleModels(List<RentBicycleModel> rentBicycleModels) {
 		this.rentBicycleModels = rentBicycleModels;
+	}
+	public List<ReportProblem> getListReportProblems() {
+		return listReportProblems;
+	}
+	public void setListReportProblems(List<ReportProblem> listReportProblems) {
+		this.listReportProblems = listReportProblems;
 	}
 	
 }
