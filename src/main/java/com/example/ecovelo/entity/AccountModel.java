@@ -1,71 +1,80 @@
 package com.example.ecovelo.entity;
 
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.example.ecovelo.enums.Role;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 @Entity
-@Table(name = "account")
-public class AccountModel {
-	public AccountModel(String phone_number, String password, boolean enable_account, boolean is_admin,
-			UserModel userModel) {
-		super();
-		this.phone_number = phone_number;
-		this.password = password;
-		this.enable_account = enable_account;
-		this.is_admin = is_admin;
-		this.userModel = userModel;
-	}
-	public AccountModel() {
-		
-	}
+public class AccountModel implements UserDetails {
+
 	@Id
-	private String phone_number;
-	
+	private String phoneNumber;
 	@Column(nullable = false)
 	private String password;
-	
-	@Column 
-	private boolean enable_account;
-	
-	@Column 
-	private boolean is_admin;
+	private boolean enableAccount;
+	@Enumerated(EnumType.STRING)
+	private Role role;
 	
 	@OneToOne
 	@JoinColumn(name= "id_user")
 	private UserModel userModel;
 	
-	public String getPhone_number() {
-		return phone_number;
-	}
-	public void setPhone_number(String phone_number) {
-		this.phone_number = phone_number;
-	}
+	@OneToMany(mappedBy = "accountModel", cascade = CascadeType.ALL)
+	private List<RefreshToken> refreshTokens;
+	
+	@Override
 	public String getPassword() {
 		return password;
 	}
-	public void setPassword(String password) {
-		this.password = password;
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return List.of(new SimpleGrantedAuthority(role.name()));
 	}
-	public boolean isEnable_account() {
-		return enable_account;
+	@Override
+	public String getUsername() {
+		return phoneNumber;
 	}
-	public void setEnable_account(boolean enable_account) {
-		this.enable_account = enable_account;
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
 	}
-	public boolean isIs_admin() {
-		return is_admin;
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
 	}
-	public void setIs_admin(boolean is_admin) {
-		this.is_admin = is_admin;
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
 	}
-	public UserModel getUserModel() {
-		return userModel;
+	@Override
+	public boolean isEnabled() {
+		return true;
 	}
-	public void setUserModel(UserModel userModel) {
-		this.userModel = userModel;
-	}
+	
 }

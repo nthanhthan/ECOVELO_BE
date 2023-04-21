@@ -17,16 +17,16 @@ import jakarta.persistence.Table;
 public class ReportProblem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id_report_problem;
+	private int id;
 	
 	@Column 
 	private Date createAt;
 	@Column
 	private String desciption;
 	@Column
-	private String upload_image;
+	private String uploadImage;
 	@Column
-	private String id_bicycle;
+	private String idBicycle;
 
 	@ManyToOne
 	@JoinColumn(name= "id_problem")
