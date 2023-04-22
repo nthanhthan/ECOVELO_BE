@@ -24,20 +24,9 @@ public class UserModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
-	@Column 
 	private String nameUser;
-	
-	@Column 
-	private String email;
-	
-	@Column 
-	private boolean sex;
-	
-	@Column 
+	private String email; 
 	private float money;
-	
-	@Column 
 	private boolean verify;
 	
 	@OneToOne(mappedBy = "userModel")

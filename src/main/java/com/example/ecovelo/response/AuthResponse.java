@@ -1,5 +1,6 @@
 package com.example.ecovelo.response;
 
+import com.example.ecovelo.entity.UserModel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -16,5 +17,7 @@ public class AuthResponse {
 	  private String accessToken;
 	  @JsonProperty("refresh_token")
 	  private String refreshToken;
+	  private Long expired;
+	  private UserResponse userResponse;
 }
 
