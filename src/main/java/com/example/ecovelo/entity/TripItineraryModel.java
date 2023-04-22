@@ -1,4 +1,6 @@
 package com.example.ecovelo.entity;
+import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,44 +9,25 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
-@Table(name = "trip_itinerary")
 public class TripItineraryModel {
-	public TripItineraryModel(int id_trip_itinerary, String detail_trip, RentBicycleModel rentbicycleModel) {
-		super();
-		this.id_trip_itinerary = id_trip_itinerary;
-		this.detail_trip = detail_trip;
-		this.rentbicycleModel = rentbicycleModel;
-	}
-	public TripItineraryModel() {}
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id_trip_itinerary;
+	private int id;
 	
 	@Column(nullable = false)
-	private String detail_trip;
+	private String detailTrip;
 	
 	@OneToOne
 	@JoinColumn(name= "id_rent_bicycle")
-	private RentBicycleModel rentbicycleModel;
-	
-	public int getId_trip_itinerary() {
-		return id_trip_itinerary;
-	}
-	public void setId_trip_itinerary(int id_trip_itinerary) {
-		this.id_trip_itinerary = id_trip_itinerary;
-	}
-	public String getDetail_trip() {
-		return detail_trip;
-	}
-	public void setDetail_trip(String detail_trip) {
-		this.detail_trip = detail_trip;
-	}
-	public RentBicycleModel getRentbicycleModel() {
-		return rentbicycleModel;
-	}
-	public void setRentbicycleModel(RentBicycleModel rentbicycleModel) {
-		this.rentbicycleModel = rentbicycleModel;
-	}
+	private RentBicycleModel rentBicycleModel;
 }
