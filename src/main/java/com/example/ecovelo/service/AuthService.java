@@ -77,11 +77,13 @@ public class AuthService {
 		UserResponse userResponse = new UserResponse();
 		if(accountModel != null) {
 			if(accountModel.getUserModel() != null) {
+				userResponse.setUserId(accountModel.getUserModel().getId());
 				userResponse.setPhoneNumber(accountModel.getPhoneNumber());
 				userResponse.setEmail(accountModel.getUserModel().getEmail());
 				userResponse.setMoney(accountModel.getUserModel().getMoney());
 				userResponse.setNameUser(accountModel.getUserModel().getNameUser());
 				userResponse.setVerify(accountModel.getUserModel().isVerify());
+				userResponse.setProPoint(accountModel.getUserModel().getProPoint());
 			}
 		}
 		return AuthResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).userResponse(userResponse)
