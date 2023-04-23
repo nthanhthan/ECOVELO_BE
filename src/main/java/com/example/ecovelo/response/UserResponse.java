@@ -14,6 +14,5 @@ public class UserResponse {
 	private String email;
 	private float money;
 	private String nameUser;
-	private boolean sex;
 	private boolean verify;
 }
