@@ -1,4 +1,5 @@
 package com.example.ecovelo.response;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class AuthResponse {
-	  private String accessToken;
-	  private String refreshToken;
-	  private Long expired;
-	  private UserResponse userResponse;
-}
+public class StationResponse {
+	private int id;
+	private String address;
+	private double lat;
+    private double lng;
+    private int numBicycle;
 
+
+}
