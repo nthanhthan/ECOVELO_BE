@@ -1,4 +1,4 @@
-package com.example.ecovelo.configuration;
+		package com.example.ecovelo.configuration;
 
 
 import org.springframework.context.annotation.Bean;
