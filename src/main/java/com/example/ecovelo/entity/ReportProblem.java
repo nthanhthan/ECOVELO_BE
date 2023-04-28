@@ -1,7 +1,4 @@
 package com.example.ecovelo.entity;
-
-import java.util.Date;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +17,7 @@ public class ReportProblem {
 	private int id;
 	
 	@Column 
-	private Date createAt;
+	private Long createAt;
 	@Column
 	private String desciption;
 	@Column

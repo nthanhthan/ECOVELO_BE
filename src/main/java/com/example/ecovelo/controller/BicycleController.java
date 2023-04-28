@@ -1,9 +1,11 @@
 package com.example.ecovelo.controller;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.example.ecovelo.service.BicycleService;
 
 
@@ -20,4 +22,10 @@ public class BicycleController {
 	  ) {
 	    return ResponseEntity.ok(bicycleService.checkExistBicycleID(id));
 	  }
+//	 @PostMapping("/getBicycle")
+//	  public ResponseEntity<Optional<BicycleModel>> getBicycleById(
+//			  @RequestBody String id
+//	  ) {
+//	    return ResponseEntity.ok(bicycleService.getBicycleIById(id));
+//	  }
 }

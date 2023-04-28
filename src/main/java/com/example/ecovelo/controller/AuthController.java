@@ -1,6 +1,7 @@
 package com.example.ecovelo.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,7 @@ import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.service.AuthService;
+import com.example.ecovelo.service.LogoutService;
 
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 	
 	  private final AuthService service;
+	  private final LogoutService logoutService;
 
 	  @PostMapping("/register")
 	  public ResponseEntity<AuthResponse> register(
@@ -37,10 +40,16 @@ public class AuthController {
 	  }
 
 	  @PostMapping("/refresh-token")
-	  public void refreshToken(
+	  public ResponseEntity<AuthResponse> refreshToken(
 	      HttpServletRequest request,
-	      HttpServletResponse response
+	      HttpServletResponse response,
+	      @RequestBody String refreshToken
 	  ) throws IOException {
-		  service.refreshToken(request, response);
+		return ResponseEntity.ok(service.refreshToken(request, response, refreshToken))  ;
+	  }
+	  
+	  @DeleteMapping("logout")
+	  public void logout() {
+		  logoutService.logout(null, null, null);
 	  }
 }

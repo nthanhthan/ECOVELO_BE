@@ -1,7 +1,4 @@
 package com.example.ecovelo.entity;
-
-import java.util.Date;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,10 +23,10 @@ public class RentBicycleModel {
 	private int id;
 	
 	@Column(nullable = false)
-	private Date beginTimeRent;
+	private Long beginTimeRent;
 	
 	@Column(nullable = false)
-	private Date endTimeRent;
+	private Long endTimeRent;
 	
 	@Column 
 	private int numFallBicycle;

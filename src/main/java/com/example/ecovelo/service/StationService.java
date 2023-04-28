@@ -21,11 +21,14 @@ public class StationService {
 		List<StationResponse> listStationResponse= new ArrayList<StationResponse>();
 		if(listStation!=null && !listStation.isEmpty()) {
 			for(BicycleStationModel station :listStation){
-				listStationResponse.add(StationResponse.builder().id(station.getId()).lat(station.getLat()).lng(station.getLng()).address(station.getAddressStation()).numBicycle(station.getNumBicycle()).build());
+				listStationResponse.add(StationResponse.builder().id(station.getId()).lat(station.getLat()).lng(station.getLng()).address(station.getAddress()).numBicycle(station.getNumBicycle()).build());
 			}
 			
 		}
 		return listStationResponse;
+	}
+	public void createStation(List<BicycleStationModel> stations) {
+		bicycleStationModelRepository.saveAll(stations);	
 	}
 
 }
