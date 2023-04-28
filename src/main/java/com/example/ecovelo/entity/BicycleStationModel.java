@@ -29,7 +29,7 @@ public class BicycleStationModel {
 	private double lng;
 	
 	@Column(nullable = false)
-	private String addressStation;
+	private String address;
 	
 	@Column 
 	private int numBicycle;

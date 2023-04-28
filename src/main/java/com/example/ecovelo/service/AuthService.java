@@ -107,35 +107,24 @@ public class AuthService {
 		refreshTokenRepository.saveAll(validUserTokens);
 	}
 
-	public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-		final String refreshToken;
+	public AuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) throws IOException {
+
 		final String phoneNumber;
-		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-			return;
-		}
-		refreshToken = authHeader.substring(7);
 		phoneNumber = jwtService.extractUsername(refreshToken);
 		if (phoneNumber != null) {
 			var user = this.accountRepository.findByPhoneNumber(phoneNumber).orElseThrow();
 			if (jwtService.isTokenValid(refreshToken, user)) {
 				var accessToken = jwtService.generateToken(user);
+				var newRefreshToken= jwtService.generateRefreshToken(user);
 				revokeAllUserTokens(user);
 				saveUserToken(user, accessToken);
-				var authResponse = AuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken).build();
-				try {
-					new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-				} catch (StreamWriteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (DatabindException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (java.io.IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				var authResponse = AuthResponse.builder().accessToken(accessToken).refreshToken(newRefreshToken).expired(jwtService.extractExpiration(accessToken).getTime()).build();
+				return authResponse;
+				
+			}else {
+				return null;
 			}
 		}
+		return null;
 	}
 }

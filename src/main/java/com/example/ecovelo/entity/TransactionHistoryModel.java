@@ -1,5 +1,4 @@
 package com.example.ecovelo.entity;
-import java.util.Date;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,7 +25,7 @@ public class TransactionHistoryModel {
 	private float money;
 	
 	@Column 
-	private Date datetimeTransaction;
+	private Long datetimeTransaction;
 
 	@Column 
 	private String titleTransaction;

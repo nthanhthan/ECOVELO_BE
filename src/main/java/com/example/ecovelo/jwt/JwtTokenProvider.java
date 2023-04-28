@@ -37,7 +37,7 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(UserDetails userDetails) {
-    	return generateToken(new HashMap(), userDetails);
+    	return generateToken(new HashMap<String, Object>(), userDetails);
     }
 
     public String generateToken(

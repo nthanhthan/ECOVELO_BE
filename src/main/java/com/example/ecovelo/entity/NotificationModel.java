@@ -1,6 +1,4 @@
 package com.example.ecovelo.entity;
-
-import java.util.Date;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,5 +26,5 @@ public class NotificationModel {
 	private String body;
 	
 	@Column 
-	private Date datetimePush;
+	private Long datetimePush;
 }
