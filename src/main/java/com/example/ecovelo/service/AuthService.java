@@ -1,6 +1,4 @@
 package com.example.ecovelo.service;
-
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,9 +19,6 @@ import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.response.UserResponse;
-import com.fasterxml.jackson.core.exc.StreamWriteException;
-import com.fasterxml.jackson.databind.DatabindException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,10 +36,7 @@ public class AuthService {
 	private final AuthenticationManager authenticationManager;
 
 	private UserModel saveUserModel(RegisterRequest request) {
-		var userModel = UserModel.builder()
-				.nameUser(request.getNameUser())
-				.email(request.getEmail())
-				.verify(false)
+		var userModel = UserModel.builder().nameUser(request.getNameUser()).email(request.getEmail()).verify(false)
 				.build();
 		userRepository.save(userModel);
 		return userModel;
@@ -62,12 +54,14 @@ public class AuthService {
 	}
 
 	public AuthResponse authenticate(AuthRequest request) {
-		Authentication authentication = new UsernamePasswordAuthenticationToken(request.getPhoneNumber(), request.getPassword());
+		Authentication authentication = new UsernamePasswordAuthenticationToken(request.getPhoneNumber(),
+				request.getPassword());
 		try {
 			authenticationManager.authenticate(authentication);
-		}catch(BadCredentialsException ex) {
+		} catch (BadCredentialsException ex) {
 			throw new UnAuthorizeException("Invalid UserName or Password");
 		}
+		
 		var accountModel = accountRepository.findByPhoneNumber(request.getPhoneNumber()).orElseThrow();
 		var jwtToken = jwtService.generateToken(accountModel);
 		var refreshToken = jwtService.generateRefreshToken(accountModel);
@@ -75,8 +69,8 @@ public class AuthService {
 		saveUserToken(accountModel, jwtToken);
 //	    var expired = jwtService.extractExpiration(jwtToken).getTime();
 		UserResponse userResponse = new UserResponse();
-		if(accountModel != null) {
-			if(accountModel.getUserModel() != null) {
+		if (accountModel != null) {
+			if (accountModel.getUserModel() != null) {
 				userResponse.setUserId(accountModel.getUserModel().getId());
 				userResponse.setPhoneNumber(accountModel.getPhoneNumber());
 				userResponse.setEmail(accountModel.getUserModel().getEmail());
@@ -107,7 +101,8 @@ public class AuthService {
 		refreshTokenRepository.saveAll(validUserTokens);
 	}
 
-	public AuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) throws IOException {
+	public AuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response, String refreshToken)
+			throws IOException {
 
 		final String phoneNumber;
 		phoneNumber = jwtService.extractUsername(refreshToken);
@@ -115,12 +110,13 @@ public class AuthService {
 			var user = this.accountRepository.findByPhoneNumber(phoneNumber).orElseThrow();
 			if (jwtService.isTokenValid(refreshToken, user)) {
 				var accessToken = jwtService.generateToken(user);
-				var newRefreshToken= jwtService.generateRefreshToken(user);
+				var newRefreshToken = jwtService.generateRefreshToken(user);
 				revokeAllUserTokens(user);
 				saveUserToken(user, accessToken);
-				var authResponse = AuthResponse.builder().accessToken(accessToken).refreshToken(newRefreshToken).expired(jwtService.extractExpiration(accessToken).getTime()).build();
+				var authResponse = AuthResponse.builder().accessToken(accessToken).refreshToken(newRefreshToken)
+						.expired(jwtService.extractExpiration(accessToken).getTime()).build();
 				return authResponse;
-				
+
 			}else {
 				return null;
 			}

@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BicycleService {
 	private final BicycleModelRepository bicycleModelRepository;
-	
 	public boolean checkExistBicycleID(String id) {
 		boolean existID=false;
 		Optional<BicycleModel> bicycle= bicycleModelRepository.findById(id);
