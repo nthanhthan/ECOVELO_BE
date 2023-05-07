@@ -12,6 +12,7 @@ import com.example.ecovelo.request.RegisterRequest;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.service.AuthService;
 import com.example.ecovelo.service.LogoutService;
+import com.example.ecovelo.service.MQTTService;
 
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,8 @@ public class AuthController {
 	
 	  private final AuthService service;
 	  private final LogoutService logoutService;
-
+	  private final MQTTService mqttService;
+ 
 	  @PostMapping("/register")
 	  public ResponseEntity<AuthResponse> register(
 	      @RequestBody RegisterRequest request
@@ -36,6 +38,7 @@ public class AuthController {
 	  public ResponseEntity<AuthResponse> authenticate(
 	      @RequestBody AuthRequest request
 	  ) {
+		  mqttService.connectMQTT();
 	    return ResponseEntity.ok(service.authenticate(request));
 	  }
 
