@@ -24,7 +24,7 @@ public class UserModel {
 	private int id;
 	private String nameUser;
 	private String email; 
-	private float money;
+	private float mainPoint;
 	private float proPoint;
 	private boolean verify;
 	

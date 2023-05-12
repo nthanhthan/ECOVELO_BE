@@ -1,13 +1,12 @@
 package com.example.ecovelo.entity;
 
 import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,19 +18,31 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @Entity
-public class BicycleStationModel {
+public class Coordinate {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	 @ManyToOne
-	 @JoinColumn(name = "coordinate_id")
-	 private Coordinate coordinate;
-	
 	@Column 
-	private int numBicycle;
-	
-	@OneToMany(mappedBy = "bicycleStationModel")
-	private List<BicycleModel> bicycleModels;
+	private String lat;
 
+	@Column 
+	private String lng;
+	
+	@Column
+	private String address;
+	
+	
+	
+	@OneToMany(mappedBy = "coordinate")
+    private List<BicycleModel> bicycles;
+	
+	@OneToMany(mappedBy = "coordinate")
+    private List<BicycleStationModel> stations;
+	
+	@OneToMany(mappedBy= "coordinateStartRent")
+	private List<RentBicycleModel> startRents;
+	
+	@OneToMany(mappedBy= "coordinateEndRent")
+	private List<RentBicycleModel>  endRents;
 }

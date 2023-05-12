@@ -5,7 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,18 +13,21 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 @Entity
-public class TripItineraryModel {
+public class TripDetail {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@Column(nullable = false)
-	private String detailTrip;
+	@Column 
+	private String lat;
+
+	@Column 
+	private String lng;
 	
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name= "id_rent_bicycle")
 	private RentBicycleModel rentBicycleModel;
 }

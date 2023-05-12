@@ -65,16 +65,15 @@ public class AuthService {
 		var accountModel = accountRepository.findByPhoneNumber(request.getPhoneNumber()).orElseThrow();
 		var jwtToken = jwtService.generateToken(accountModel);
 		var refreshToken = jwtService.generateRefreshToken(accountModel);
-		revokeAllUserTokens(accountModel);
 		saveUserToken(accountModel, jwtToken);
 //	    var expired = jwtService.extractExpiration(jwtToken).getTime();
 		UserResponse userResponse = new UserResponse();
 		if (accountModel != null) {
 			if (accountModel.getUserModel() != null) {
-				userResponse.setUserId(accountModel.getUserModel().getId());
+				userResponse.setUserId(accountModel.getIdUser());
 				userResponse.setPhoneNumber(accountModel.getPhoneNumber());
 				userResponse.setEmail(accountModel.getUserModel().getEmail());
-				userResponse.setMoney(accountModel.getUserModel().getMoney());
+				userResponse.setMoney(accountModel.getUserModel().getMainPoint());
 				userResponse.setNameUser(accountModel.getUserModel().getNameUser());
 				userResponse.setVerify(accountModel.getUserModel().isVerify());
 				userResponse.setProPoint(accountModel.getUserModel().getProPoint());
@@ -90,16 +89,16 @@ public class AuthService {
 		refreshTokenRepository.save(token);
 	}
 
-	private void revokeAllUserTokens(AccountModel accountModel) {
-		var validUserTokens = refreshTokenRepository.findAllValidTokenByUser(accountModel.getUsername());
-		if (validUserTokens.isEmpty())
-			return;
-		validUserTokens.forEach(token -> {
-			token.setExpired(true);
-			token.setRevoked(true);
-		});
-		refreshTokenRepository.saveAll(validUserTokens);
-	}
+//	private void revokeAllUserTokens(AccountModel accountModel) {
+//		var validUserTokens = refreshTokenRepository.findAllValidTokenByUser(accountModel.getUsername());
+//		if (validUserTokens.isEmpty())
+//			return;
+//		validUserTokens.forEach(token -> {
+//			token.setExpired(true);
+//			token.setRevoked(true);
+//		});
+//		refreshTokenRepository.saveAll(validUserTokens);
+//	}
 
 	public AuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response, String refreshToken)
 			throws IOException {
@@ -111,7 +110,6 @@ public class AuthService {
 			if (jwtService.isTokenValid(refreshToken, user)) {
 				var accessToken = jwtService.generateToken(user);
 				var newRefreshToken = jwtService.generateRefreshToken(user);
-				revokeAllUserTokens(user);
 				saveUserToken(user, accessToken);
 				var authResponse = AuthResponse.builder().accessToken(accessToken).refreshToken(newRefreshToken)
 						.expired(jwtService.extractExpiration(accessToken).getTime()).build();

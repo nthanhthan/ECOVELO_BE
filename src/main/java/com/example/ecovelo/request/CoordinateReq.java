@@ -1,4 +1,4 @@
-package com.example.ecovelo.response;
+package com.example.ecovelo.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,12 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class StationResponse {
-	private int id;
-	private String address;
+public class CoordinateReq {
 	private String lat;
-    private String lng;
-    private int numBicycle;
-
+	private String lng;
+	private String address;
 
 }

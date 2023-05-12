@@ -13,6 +13,7 @@ import com.example.ecovelo.service.StationService;
 import lombok.RequiredArgsConstructor;
 
 import com.example.ecovelo.entity.BicycleStationModel;
+import com.example.ecovelo.request.StationReq;
 import com.example.ecovelo.response.StationResponse;
 
 @RestController
@@ -27,7 +28,7 @@ public class StationController {
 	    return ResponseEntity.ok(stationService.getListStation());
 	  }
 	 @PostMapping("/save")
-	 public void saveStations(@RequestBody List<BicycleStationModel> stations) {
+	 public void saveStations(@RequestBody List<StationReq> stations) {
 		 
 		 stationService.createStation(stations);
 	 }

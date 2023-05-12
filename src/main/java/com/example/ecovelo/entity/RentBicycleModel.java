@@ -1,4 +1,6 @@
 package com.example.ecovelo.entity;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,14 +37,13 @@ public class RentBicycleModel {
 	@Column(nullable = false)
 	private float totalCharge;
 	
-	@Column(nullable = false)
-	private String startLocation;
+	@ManyToOne
+	@JoinColumn(name= "startRent")
+	private Coordinate  coordinateStartRent;
 	
-	@Column(nullable = false)
-	private String endLocation;
-	
-	@OneToOne(mappedBy = "rentBicycleModel")
-	private TripItineraryModel tripItineraryModel;
+	@ManyToOne
+	@JoinColumn(name= "endRent")
+	private Coordinate  coordinateEndRent;
 	
 	@ManyToOne
 	@JoinColumn(name= "id_bicycle")
@@ -54,4 +56,7 @@ public class RentBicycleModel {
 	
 	@OneToOne(mappedBy = "rentBicycleModel")
 	private ReviewModel reviewModel;
+	
+	@OneToMany(mappedBy ="rentBicycleModel")
+	private List<TripDetail>  coordinateItinerary;
 }
