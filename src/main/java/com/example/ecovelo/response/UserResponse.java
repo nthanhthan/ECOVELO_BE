@@ -13,7 +13,7 @@ public class UserResponse {
 	private int userId;
 	private String phoneNumber;
 	private String email;
-	private float money;
+	private float mainPoint;
 	private float proPoint;
 	private String nameUser;
 	private boolean verify;

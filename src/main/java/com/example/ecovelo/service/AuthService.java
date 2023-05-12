@@ -1,4 +1,6 @@
 package com.example.ecovelo.service;
+import java.util.Optional;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,6 +43,27 @@ public class AuthService {
 		userRepository.save(userModel);
 		return userModel;
 	}
+	public UserModel getUserByToken(String token) {
+		final String phoneNumber;
+		phoneNumber = jwtService.extractUsername(token);
+		var accountModel = accountRepository.findByPhoneNumber(phoneNumber).orElseThrow();
+		Optional<UserModel> user = userRepository.findById(accountModel.getIdUser());
+		if(user.isPresent()) {
+			return user.get();
+		}
+		return null;
+		
+	}
+	
+	public boolean checkPointUser(String token) {
+		UserModel user= getUserByToken(token);
+		if(user!=null) {
+			if(user.getMainPoint()+user.getProPoint()>=5000) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public AuthResponse register(RegisterRequest request) {
 		var userModel = saveUserModel(request);
@@ -73,7 +96,7 @@ public class AuthService {
 				userResponse.setUserId(accountModel.getIdUser());
 				userResponse.setPhoneNumber(accountModel.getPhoneNumber());
 				userResponse.setEmail(accountModel.getUserModel().getEmail());
-				userResponse.setMoney(accountModel.getUserModel().getMainPoint());
+				userResponse.setMainPoint(accountModel.getUserModel().getMainPoint());
 				userResponse.setNameUser(accountModel.getUserModel().getNameUser());
 				userResponse.setVerify(accountModel.getUserModel().isVerify());
 				userResponse.setProPoint(accountModel.getUserModel().getProPoint());
@@ -120,5 +143,20 @@ public class AuthService {
 			}
 		}
 		return null;
+	}
+	public UserModel getPointUser(String token) {
+		UserModel user= getUserByToken(token);
+		if(user!=null) {
+			var userModel = UserModel.builder().id(user.getId())
+					.nameUser(user.getNameUser())
+					.email(user.getEmail())
+					.mainPoint(user.getMainPoint())
+					.proPoint(user.getProPoint())
+					.verify(user.isVerify())
+					.build();
+			return userModel;
+		}
+		return null;
+		
 	}
 }

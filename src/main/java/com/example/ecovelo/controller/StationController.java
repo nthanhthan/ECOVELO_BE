@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.ecovelo.service.StationService;
 import lombok.RequiredArgsConstructor;
-
-import com.example.ecovelo.entity.BicycleStationModel;
 import com.example.ecovelo.request.StationReq;
 import com.example.ecovelo.response.StationResponse;
 
