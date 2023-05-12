@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
@@ -22,17 +23,15 @@ public class BicycleModel {
 	@Id
 	private String  id;
 	
-	@Column(nullable = false)
-	private double lat;
-	
-	@Column(nullable = false)
-	private double lng;
-	
 	@Column 
 	private boolean isStatus;
 	
 	@Column 
 	private boolean isUsing;
+	
+	 @ManyToOne
+	 @JoinColumn(name = "coordinate_id")
+	 private Coordinate coordinate;
 	
 	@OneToOne
 	@JoinColumn(name= "id_bicycle_station")

@@ -38,16 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 		final String authHeader = request.getHeader("Authorization");
 		final String jwt;
-		final String userEmail;
+		final String phoneNumber;
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 		jwt = authHeader.substring(7);
-		userEmail = jwtToken.extractUsername(jwt);
-		System.out.println(userEmail);
-		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+		phoneNumber = jwtToken.extractUsername(jwt);
+		if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+			UserDetails userDetails = this.userDetailsService.loadUserByUsername(phoneNumber);
 			var isTokenValid = refreshTokenRepository.findByToken(jwt).map(t -> !t.isExpired() && !t.isRevoked())
 					.orElse(false);
 			if (jwtToken.isTokenValid(jwt, userDetails) && isTokenValid) {

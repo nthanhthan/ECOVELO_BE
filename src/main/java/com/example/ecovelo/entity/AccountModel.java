@@ -16,6 +16,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,8 @@ public class AccountModel implements UserDetails {
 
 	private static final long serialVersionUID = 1L;
 	@Id
+	private int idUser;
+	@Column(unique = true)
 	private String phoneNumber;
 	@Column(nullable = false)
 	private String password;
@@ -41,6 +44,7 @@ public class AccountModel implements UserDetails {
 	
 	@OneToOne
 	@JoinColumn(name= "id_user")
+	@MapsId
 	private UserModel userModel;
 	
 	@OneToMany(mappedBy = "accountModel", cascade = CascadeType.ALL)
