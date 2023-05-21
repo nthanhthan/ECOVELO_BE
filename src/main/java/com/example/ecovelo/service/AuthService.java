@@ -1,4 +1,8 @@
 package com.example.ecovelo.service;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Optional;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -8,16 +12,20 @@ import org.springframework.stereotype.Service;
 
 import com.example.ecovelo.entity.AccountModel;
 import com.example.ecovelo.entity.RefreshToken;
+import com.example.ecovelo.entity.TransactionHistoryModel;
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.enums.Role;
 import com.example.ecovelo.exception.UnAuthorizeException;
 import com.example.ecovelo.jwt.JwtTokenProvider;
 import com.example.ecovelo.repository.AccountModelRepository;
 import com.example.ecovelo.repository.RefreshTokenRepository;
+import com.example.ecovelo.repository.TransactionModelRepository;
 import com.example.ecovelo.repository.UserModelRepository;
 import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
+import com.example.ecovelo.request.TransactionRequest;
 import com.example.ecovelo.response.AuthResponse;
+import com.example.ecovelo.response.TransactionResp;
 import com.example.ecovelo.response.UserResponse;
 
 import io.jsonwebtoken.io.IOException;
@@ -34,12 +42,34 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtService;
 	private final AuthenticationManager authenticationManager;
+	
+	private final TransactionModelRepository transactionHistoryRepo;
 
 	private UserModel saveUserModel(RegisterRequest request) {
 		var userModel = UserModel.builder().nameUser(request.getNameUser()).email(request.getEmail()).verify(false)
 				.build();
 		userRepository.save(userModel);
 		return userModel;
+	}
+	public UserModel getUserByToken(String token) {
+		final String phoneNumber;
+		phoneNumber = jwtService.extractUsername(token);
+		var accountModel = accountRepository.findByPhoneNumber(phoneNumber).orElseThrow();
+		Optional<UserModel> user = userRepository.findById(accountModel.getIdUser());
+		if(user.isPresent()) {
+			return user.get();
+		}
+		return null;
+	}
+	
+	public boolean checkPointUser(String token) {
+		UserModel user= getUserByToken(token);
+		if(user!=null) {
+			if(user.getMainPoint()+user.getProPoint()>=5000) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public AuthResponse register(RegisterRequest request) {
@@ -73,7 +103,7 @@ public class AuthService {
 				userResponse.setUserId(accountModel.getIdUser());
 				userResponse.setPhoneNumber(accountModel.getPhoneNumber());
 				userResponse.setEmail(accountModel.getUserModel().getEmail());
-				userResponse.setMoney(accountModel.getUserModel().getMainPoint());
+				userResponse.setMainPoint(accountModel.getUserModel().getMainPoint());
 				userResponse.setNameUser(accountModel.getUserModel().getNameUser());
 				userResponse.setVerify(accountModel.getUserModel().isVerify());
 				userResponse.setProPoint(accountModel.getUserModel().getProPoint());
@@ -120,5 +150,86 @@ public class AuthService {
 			}
 		}
 		return null;
+	}
+	public UserModel getUser(String token, UserModel userModel) {
+		UserModel user;
+		if(userModel!=null) {
+			user=userModel;
+		}else {
+			 user= getUserByToken(token);
+		}
+		if(user!=null) {
+			var userResp = UserModel.builder().id(user.getId())
+					.nameUser(user.getNameUser())
+					.email(user.getEmail())
+					.mainPoint(user.getMainPoint())
+					.proPoint(user.getProPoint())
+					.verify(user.isVerify())
+					.build();
+			return userResp;
+		}
+		return null;
+		
+	}
+	public void payRentBicycle(float point, UserModel user) {
+		float mainPoint= user.getMainPoint();
+		float proPoint =user.getProPoint();
+		float result = proPoint - point;
+		if (result < 0) {
+			proPoint=0;
+		    result = -result;
+		    mainPoint = mainPoint - result;
+		}else {
+			proPoint=result;
+		}
+		UserModel updateMoneyUser = UserModel.builder()
+				.id(user.getId())
+				.email(user.getEmail())
+				.nameUser(user.getNameUser())
+				.mainPoint(mainPoint)
+				.proPoint(proPoint)
+				.accountModel(user.getAccountModel())
+				.verify(user.isVerify())
+				.build();
+		userRepository.save(updateMoneyUser);
+	}
+	public TransactionResp createTransactionHistory(UserModel user,TransactionRequest transactionReq) {
+		var transactionHistory= TransactionHistoryModel.builder()
+				.datetimeTransaction(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+				.mainAccount(transactionReq.isMainPoint())
+				.money(transactionReq.getMoney())
+				.statusTransaction(transactionReq.isStatus())
+				.titleTransaction(transactionReq.getTitleTransaction())
+				.userModelTransaction(user).build();
+		TransactionHistoryModel transaction=transactionHistoryRepo.save(transactionHistory);
+		var transactionResp= TransactionResp.builder()
+				.id(transaction.getId())
+				.dateTimeTransaction(transaction.getDatetimeTransaction())
+				.point(transaction.getMoney())
+				.build();
+		return transactionResp;
+	}
+	public TransactionResp addPointUser(String token,TransactionRequest transactionReq) {
+		UserModel user = getUserByToken(token);
+		if(user!=null) {
+			var updateUser = UserModel.builder().accountModel(user.getAccountModel())
+					.id(user.getId())
+					.email(user.getEmail())
+					.mainPoint(user.getMainPoint()+transactionReq.getMoney())
+					.proPoint(user.getProPoint())
+					.verify(user.isVerify())
+					.nameUser(user.getNameUser())
+//					.personalLegalUserModel(user.getPersonalLegalUserModel())
+//					.listReportProblems(user.getListReportProblems())
+//					.rentBicycleModels(user.getRentBicycleModels())
+//					.transactionHistories(user.getTransactionHistories())
+//					.userVouchers(user.getUserVouchers())
+					.build();
+			var userUpdate=userRepository.save(updateUser);
+			TransactionResp transaction= createTransactionHistory(userUpdate,transactionReq);
+			return transaction;
+		}else {
+			return null;
+		}
 	}
 }
