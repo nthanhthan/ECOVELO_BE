@@ -49,8 +49,7 @@ public class BicycleService {
 	public int rentBicycle(String token, String bicycleID) {
 		boolean checkExistBicycleID = checkExistBicycleID(bicycleID);
 		if (checkExistBicycleID) {
-			Callable<Boolean> callable = () -> mqttService.openBicycle(bicycleID);
-
+			Callable<Boolean> callable = () -> mqttService.rentBicycle(bicycleID,"0");
 			ExecutorService executor = Executors.newSingleThreadExecutor();
 			Future<Boolean> future = executor.submit(callable);
 
@@ -62,8 +61,7 @@ public class BicycleService {
 			}
 			UserModel user = authService.getUserByToken(token);
 			var bicycle = bicycleModelRepository.findById(bicycleID);
-
-			if (user!=null && bicycle.isPresent()) {
+			if (user != null && bicycle.isPresent() && authService.checkPointUser(token)) {
 				updateBicycle(bicycle.get());
 				var rentBicycle = RentBicycleModel.builder()
 						.beginTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
@@ -80,7 +78,7 @@ public class BicycleService {
 		return -1;
 	}
 
-	public float endJourney(String bicycleID, int rentID) {
+	public UserModel endJourney(String bicycleID, int rentID) {
 		Optional<BicycleModel> bicycle = bicycleModelRepository.findById(bicycleID);
 		if (bicycle.isPresent()) {
 			if (bicycle.get().isStatus() && bicycle.get().isUsing()) {
@@ -97,8 +95,11 @@ public class BicycleService {
 					if (durationInMinutes < 30) {
 						money = 5000;
 					} else {
-						money = durationInMinutes * 5000 / 30;
+						System.out.println("money: " );
+						money = Math.round(durationInMinutes * 5000 / 30)/100;
+						System.out.println(money );
 					}
+					authService.payRentBicycle(money, rented.getUserModelRent());
 					var rentBicycle = RentBicycleModel.builder().id(rented.getId())
 							.beginTimeRent(rented.getBeginTimeRent())
 							.coordinateStartRent(rented.getCoordinateStartRent())
@@ -107,7 +108,7 @@ public class BicycleService {
 							.endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 							.totalCharge(money).build();
 					rentbicycleRepo.save(rentBicycle);
-					Callable<Boolean> callable = () -> mqttService.openBicycle(bicycleID);
+					Callable<Boolean> callable = () -> mqttService.rentBicycle(bicycleID,"1");
 
 					ExecutorService executor = Executors.newSingleThreadExecutor();
 					Future<Boolean> future = executor.submit(callable);
@@ -118,11 +119,11 @@ public class BicycleService {
 					} catch (InterruptedException | ExecutionException e) {
 						e.printStackTrace();
 					}
-					return money;
+					return authService.getUser(null, rented.getUserModelRent());
 				}
 
 			}
 		}
-		return -1;
+		return null;
 	}
 }

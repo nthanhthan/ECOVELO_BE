@@ -8,15 +8,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
+import com.example.ecovelo.request.TransactionRequest;
 import com.example.ecovelo.response.AuthResponse;
+import com.example.ecovelo.response.TransactionResp;
 import com.example.ecovelo.service.AuthService;
 import com.example.ecovelo.service.LogoutService;
-import com.example.ecovelo.service.MQTTService;
-
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +28,6 @@ public class AuthController {
 
 	private final AuthService service;
 	private final LogoutService logoutService;
-	private final MQTTService mqttService;
 
 	@PostMapping("/register")
 	public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
@@ -38,7 +36,6 @@ public class AuthController {
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest request) {
-		mqttService.connectMQTT();
 		return ResponseEntity.ok(service.authenticate(request));
 	}
 
@@ -62,7 +59,14 @@ public class AuthController {
 	@GetMapping("/getUser")	
 	public ResponseEntity<UserModel> getPointUser(@RequestHeader(name = "Authorization") String token) {
 		final String jwt = token.substring(7);
-		return ResponseEntity.ok(service.getPointUser(jwt));
+		return ResponseEntity.ok(service.getUser(jwt,null));
+	}
+	
+	@PostMapping("/addMoney")
+	public ResponseEntity<TransactionResp> register(@RequestHeader(name = "Authorization") String token,
+			@RequestBody TransactionRequest request) {
+		final String jwt = token.substring(7);
+		return ResponseEntity.ok(service.addPointUser(jwt, request));
 	}
 
 }
