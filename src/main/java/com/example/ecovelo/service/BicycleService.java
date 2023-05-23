@@ -17,6 +17,8 @@ import com.example.ecovelo.entity.RentBicycleModel;
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.repository.BicycleModelRepository;
 import com.example.ecovelo.repository.RentBicycleModelRepository;
+import com.example.ecovelo.request.TransactionRequest;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,6 +28,7 @@ public class BicycleService {
 	private final MQTTService mqttService;
 	private final RentBicycleModelRepository rentbicycleRepo;
 	private final AuthService authService;
+	private final TransactionHistoryService transactionService;
 
 	public boolean checkExistBicycleID(String id) {
 		boolean existID = false;
@@ -108,6 +111,8 @@ public class BicycleService {
 							.endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 							.totalCharge(money).build();
 					rentbicycleRepo.save(rentBicycle);
+					TransactionRequest  transactionRequest= new TransactionRequest(money,"Riding "+bicycleID,true, true);
+					transactionService.createTransactionHistory(rented.getUserModelRent(), transactionRequest);
 					Callable<Boolean> callable = () -> mqttService.rentBicycle(bicycleID,"1");
 
 					ExecutorService executor = Executors.newSingleThreadExecutor();
