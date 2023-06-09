@@ -2,6 +2,8 @@
 package com.example.ecovelo.service;
 
 import java.time.Duration;
+import com.example.ecovelo.entity.Problem;
+import com.example.ecovelo.entity.ReportProblem;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -16,7 +18,10 @@ import com.example.ecovelo.entity.BicycleModel;
 import com.example.ecovelo.entity.RentBicycleModel;
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.repository.BicycleModelRepository;
+import com.example.ecovelo.repository.ProblemRepository;
 import com.example.ecovelo.repository.RentBicycleModelRepository;
+import com.example.ecovelo.repository.ReportProblemRepository;
+import com.example.ecovelo.request.ReportProblemRequest;
 import com.example.ecovelo.request.TransactionRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +34,8 @@ public class BicycleService {
 	private final RentBicycleModelRepository rentbicycleRepo;
 	private final AuthService authService;
 	private final TransactionHistoryService transactionService;
+	private final ReportProblemRepository  reportProblemRepo;
+	private final ProblemRepository problemRepo;
 
 	public boolean checkExistBicycleID(String id) {
 		boolean existID = false;
@@ -68,7 +75,8 @@ public class BicycleService {
 				updateBicycle(bicycle.get());
 				var rentBicycle = RentBicycleModel.builder()
 						.beginTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
-						.coordinateStartRent(bicycle.get().getCoordinate()).userModelRent(user).numFallBicycle(0)
+						.coordinateStartRent(bicycle.get().getCoordinate())
+						.userModelRent(user).numFallBicycle(0)
 						.bicycleModel(bicycle.get())
 						.endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 						.totalCharge(0).build();
@@ -99,13 +107,14 @@ public class BicycleService {
 						money = 5000;
 					} else {
 						System.out.println("money: " );
-						money = Math.round(durationInMinutes * 5000 / 30)/100;
+						money = Math.round(durationInMinutes * 5000 / 30);
 						System.out.println(money );
 					}
 					authService.payRentBicycle(money, rented.getUserModelRent());
 					var rentBicycle = RentBicycleModel.builder().id(rented.getId())
 							.beginTimeRent(rented.getBeginTimeRent())
 							.coordinateStartRent(rented.getCoordinateStartRent())
+							.coordinateEndRent(rented.getCoordinateStartRent())
 							.userModelRent(rented.getUserModelRent()).numFallBicycle(0)
 							.bicycleModel(rented.getBicycleModel()).coordinateEndRent(rented.getCoordinateStartRent())
 							.endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
@@ -130,5 +139,34 @@ public class BicycleService {
 			}
 		}
 		return null;
+	}
+
+	public boolean reportProblem(ReportProblemRequest reportReq) {
+		boolean checkID = checkBicycleReport(reportReq.getIdBicycle());
+		if (checkID) {
+			Optional<Problem> problem = problemRepo.findById(reportReq.getIdProblem());
+			UserModel user = authService.getUserByToken(reportReq.getToken());
+			if (problem.isPresent()) {
+				Problem problemModel = Problem.builder().id(problem.get().getId())
+						.nameProblem(problem.get().getNameProblem()).build();
+				var report = ReportProblem.builder()
+						.createAt(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+						.desciption(reportReq.getDescription()).idBicycle(reportReq.getIdBicycle())
+						.uploadImage(reportReq.getUrlImage()).problemModel(problemModel).userModelReport(user).build();
+				reportProblemRepo.save(report);
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	public boolean checkBicycleReport(String id) {
+		Optional<BicycleModel> bicycle = bicycleModelRepository.findById(id);
+		if (bicycle.isPresent()) {
+		return true;
+		}
+		return false;
 	}
 }

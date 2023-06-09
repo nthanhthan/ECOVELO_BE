@@ -15,7 +15,6 @@ import com.example.ecovelo.exception.UnAuthorizeException;
 import com.example.ecovelo.jwt.JwtTokenProvider;
 import com.example.ecovelo.repository.AccountModelRepository;
 import com.example.ecovelo.repository.RefreshTokenRepository;
-import com.example.ecovelo.repository.TransactionModelRepository;
 import com.example.ecovelo.repository.UserModelRepository;
 import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
