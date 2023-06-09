@@ -1,5 +1,6 @@
 package com.example.ecovelo.service;
 import java.util.List;
+import java.util.Optional;
 import java.util.ArrayList;
 
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.ecovelo.repository.BicycleStationModelRepository;
 import com.example.ecovelo.repository.CoordinateModelRepository;
 import com.example.ecovelo.request.StationReq;
+import com.example.ecovelo.response.CoordinateResponse;
 import com.example.ecovelo.response.StationResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,19 @@ public class StationService {
 			}
 		}
 		bicycleStationModelRepository.saveAll(listStation);	
+	}
+	public CoordinateResponse getCoordinateByIdStation(int id) {
+		Optional<BicycleStationModel> station=  bicycleStationModelRepository.findById(id);
+		if(station.isPresent()) {
+			CoordinateResponse coordinate= CoordinateResponse.builder()
+					.lat(station.get().getCoordinate().getLat())
+					.lng(station.get().getCoordinate().getLng())
+					.build();
+			return coordinate;
+		}
+		return null;
+		
+		
 	}
 
 }
