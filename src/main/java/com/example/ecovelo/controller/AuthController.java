@@ -8,12 +8,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
 import com.example.ecovelo.request.TransactionRequest;
+import com.example.ecovelo.request.VerifyAccountReq;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.response.TransactionResp;
+import com.example.ecovelo.response.UserResponse;
 import com.example.ecovelo.service.AuthService;
 import com.example.ecovelo.service.LogoutService;
 import io.jsonwebtoken.io.IOException;
@@ -57,7 +58,7 @@ public class AuthController {
 	}
 
 	@GetMapping("/getUser")	
-	public ResponseEntity<UserModel> getPointUser(@RequestHeader(name = "Authorization") String token) {
+	public ResponseEntity<UserResponse> getPointUser(@RequestHeader(name = "Authorization") String token) {
 		final String jwt = token.substring(7);
 		return ResponseEntity.ok(service.getUser(jwt,null));
 	}
@@ -67,6 +68,12 @@ public class AuthController {
 			@RequestBody TransactionRequest request) {
 		final String jwt = token.substring(7);
 		return ResponseEntity.ok(service.addPointUser(jwt, request));
+	}
+	
+	@PostMapping("/verify")
+	public ResponseEntity<Boolean> verifyAccount(
+			@RequestBody VerifyAccountReq verifyAcc) {
+		return ResponseEntity.ok(service.verifyAccount(verifyAcc));
 	}
 
 }

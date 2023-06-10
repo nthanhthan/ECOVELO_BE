@@ -6,10 +6,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.request.ReportProblemRequest;
 import com.example.ecovelo.request.StopRent;
+import com.example.ecovelo.response.UserResponse;
 import com.example.ecovelo.service.BicycleService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ public class BicycleController {
 	}
 
 	@PostMapping("/stop-rent")
-	public ResponseEntity<UserModel> stopRentbicycle(@RequestBody StopRent stopRent) {
+	public ResponseEntity<UserResponse> stopRentbicycle(@RequestBody StopRent stopRent) {
 		return ResponseEntity.ok(bicycleService.endJourney(stopRent.getBicycleID().trim(), stopRent.getRentID()));
 	}
 	@PostMapping("/report-problem")

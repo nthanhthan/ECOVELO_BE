@@ -8,17 +8,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.ecovelo.entity.AccountModel;
+import com.example.ecovelo.entity.PersonalLegalModel;
+import com.example.ecovelo.entity.PersonalLegalUserModel;
 import com.example.ecovelo.entity.RefreshToken;
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.enums.Role;
 import com.example.ecovelo.exception.UnAuthorizeException;
 import com.example.ecovelo.jwt.JwtTokenProvider;
 import com.example.ecovelo.repository.AccountModelRepository;
+import com.example.ecovelo.repository.LegalRepository;
 import com.example.ecovelo.repository.RefreshTokenRepository;
 import com.example.ecovelo.repository.UserModelRepository;
+import com.example.ecovelo.repository.VerifyAccountRepository;
 import com.example.ecovelo.request.AuthRequest;
 import com.example.ecovelo.request.RegisterRequest;
 import com.example.ecovelo.request.TransactionRequest;
+import com.example.ecovelo.request.VerifyAccountReq;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.response.TransactionResp;
 import com.example.ecovelo.response.UserResponse;
@@ -38,6 +43,8 @@ public class AuthService {
 	private final JwtTokenProvider jwtService;
 	private final AuthenticationManager authenticationManager;
 	private final TransactionHistoryService transactionService;
+	private final VerifyAccountRepository verifyRepo;
+	private final LegalRepository legalRepo;
 
 	private UserModel saveUserModel(RegisterRequest request) {
 		var userModel = UserModel.builder().nameUser(request.getNameUser()).email(request.getEmail()).verify(false)
@@ -147,7 +154,7 @@ public class AuthService {
 		return null;
 	}
 
-	public UserModel getUser(String token, UserModel userModel) {
+	public UserResponse getUser(String token, UserModel userModel) {
 		UserModel user;
 		if (userModel != null) {
 			user = userModel;
@@ -155,9 +162,18 @@ public class AuthService {
 			user = getUserByToken(token);
 		}
 		if (user != null) {
-			var userResp = UserModel.builder().id(user.getId()).nameUser(user.getNameUser()).email(user.getEmail())
-					.mainPoint(user.getMainPoint()).proPoint(user.getProPoint()).verify(user.isVerify()).build();
+	     	boolean checkLegal=verifyRepo.existsByUserModelLegal(user);
+			var userResp = UserResponse.builder()
+					.userId(user.getId())
+					.nameUser(user.getNameUser())
+					.email(user.getEmail())
+					.mainPoint(user.getMainPoint())
+					.proPoint(user.getProPoint())
+					.verify(user.isVerify())
+					.isProccessing(checkLegal)
+					.build();
 			return userResp;
+			
 		}
 		return null;
 
@@ -196,5 +212,20 @@ public class AuthService {
 		} else {
 			return null;
 		}
+	}
+	public boolean verifyAccount(VerifyAccountReq verifyReq) {
+		Optional<PersonalLegalModel> legal=legalRepo.findById(verifyReq.getIdLegal());
+		UserModel usermodel= getUserByToken(verifyReq.getToken());
+		if(legal.isPresent() && usermodel!=null) {
+		PersonalLegalUserModel personalLegal= PersonalLegalUserModel.builder()
+				.identifyBackside(verifyReq.getUrlBack())
+				.identifyFront(verifyReq.getUrlFront())
+				.personalLegalModel(legal.get())
+				.userModelLegal(usermodel)
+				.build();
+		verifyRepo.save(personalLegal);
+		return true;
+		}
+		return false;
 	}
 }

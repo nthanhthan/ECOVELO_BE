@@ -17,4 +17,5 @@ public class UserResponse {
 	private float proPoint;
 	private String nameUser;
 	private boolean verify;
+	private boolean isProccessing;
 }
