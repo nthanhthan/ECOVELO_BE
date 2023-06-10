@@ -23,6 +23,7 @@ import com.example.ecovelo.repository.RentBicycleModelRepository;
 import com.example.ecovelo.repository.ReportProblemRepository;
 import com.example.ecovelo.request.ReportProblemRequest;
 import com.example.ecovelo.request.TransactionRequest;
+import com.example.ecovelo.response.UserResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -89,7 +90,7 @@ public class BicycleService {
 		return -1;
 	}
 
-	public UserModel endJourney(String bicycleID, int rentID) {
+	public UserResponse endJourney(String bicycleID, int rentID) {
 		Optional<BicycleModel> bicycle = bicycleModelRepository.findById(bicycleID);
 		if (bicycle.isPresent()) {
 			if (bicycle.get().isStatus() && bicycle.get().isUsing()) {
