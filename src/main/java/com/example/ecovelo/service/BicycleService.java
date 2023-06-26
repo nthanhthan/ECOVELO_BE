@@ -6,6 +6,8 @@ import com.example.ecovelo.entity.Problem;
 import com.example.ecovelo.entity.ReportProblem;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -18,12 +20,15 @@ import com.example.ecovelo.entity.BicycleModel;
 import com.example.ecovelo.entity.RentBicycleModel;
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.repository.BicycleModelRepository;
+import com.example.ecovelo.repository.CoordinateModelRepository;
 import com.example.ecovelo.repository.ProblemRepository;
 import com.example.ecovelo.repository.RentBicycleModelRepository;
 import com.example.ecovelo.repository.ReportProblemRepository;
+import com.example.ecovelo.request.BicycleReq;
 import com.example.ecovelo.request.ReportProblemRequest;
+import com.example.ecovelo.request.StopRent;
 import com.example.ecovelo.request.TransactionRequest;
-import com.example.ecovelo.response.UserResponse;
+import com.example.ecovelo.response.StopRentResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,7 +42,9 @@ public class BicycleService {
 	private final TransactionHistoryService transactionService;
 	private final ReportProblemRepository  reportProblemRepo;
 	private final ProblemRepository problemRepo;
-
+	private final CoordinateModelRepository coordinateRepo;
+	private final StationService stationService;
+	
 	public boolean checkExistBicycleID(String id) {
 		boolean existID = false;
 		Optional<BicycleModel> bicycle = bicycleModelRepository.findById(id);
@@ -50,11 +57,34 @@ public class BicycleService {
 	}
 
 
-	private void updateBicycle(BicycleModel bicycle) {
+	private void updateBicycle(BicycleModel bicycle, int stationID) {
+		var station= stationService.getStationByID(stationID);	
+		if(station!=null) {
 		var updateBicycle = BicycleModel.builder().id(bicycle.getId()).isStatus(bicycle.isStatus())
-				.isUsing(!bicycle.isUsing()).coordinate(bicycle.getCoordinate())
-				.bicycleStationModel(bicycle.getBicycleStationModel()).build();
+				.isUsing(!bicycle.isUsing())
+				.coordinate(station.getCoordinate())
+				.bicycleStationModel(station)
+				.build();
 		bicycleModelRepository.save(updateBicycle);
+		}
+	}
+	public void  fallBicycle(int rentID) {
+		  Optional<RentBicycleModel> findRent=rentbicycleRepo.findById(rentID);
+          if (findRent.isPresent()) {
+              RentBicycleModel rented= findRent.get();
+              var rentBicycle = RentBicycleModel.builder()
+                      .id(rented.getId())
+                      .beginTimeRent(rented.getBeginTimeRent())
+                      .coordinateStartRent(rented.getCoordinateStartRent())
+                      .coordinateEndRent(rented.getCoordinateEndRent()) // sửa đổi
+                      .userModelRent(rented.getUserModelRent())
+                      .numFallBicycle(rented.getNumFallBicycle()+1)
+                      .bicycleModel(rented.getBicycleModel())
+                      .endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                      .totalCharge(0)
+                      .build();
+              rentbicycleRepo.save(rentBicycle);
+              }
 	}
 
 	public int rentBicycle(String token, String bicycleID) {
@@ -72,17 +102,16 @@ public class BicycleService {
 			}
 			UserModel user = authService.getUserByToken(token);
 			var bicycle = bicycleModelRepository.findById(bicycleID);
-			if (user != null && bicycle.isPresent() && authService.checkPointUser(token)) {
-				updateBicycle(bicycle.get());
+			if (user != null && bicycle.isPresent() && authService.checkPointUser(token) && user.isVerify()  ) {
+				updateBicycle(bicycle.get(),bicycle.get().getBicycleStationModel().getId());
 				var rentBicycle = RentBicycleModel.builder()
 						.beginTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
-						.coordinateStartRent(bicycle.get().getCoordinate())
+						.coordinateStartRent(bicycle.get().getBicycleStationModel().getCoordinate())
 						.userModelRent(user).numFallBicycle(0)
 						.bicycleModel(bicycle.get())
 						.endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 						.totalCharge(0).build();
 				rentbicycleRepo.save(rentBicycle);
-
 				System.out.println("Result: " + result);
 				return rentBicycle.getId();
 			}
@@ -90,13 +119,14 @@ public class BicycleService {
 		return -1;
 	}
 
-	public UserResponse endJourney(String bicycleID, int rentID) {
-		Optional<BicycleModel> bicycle = bicycleModelRepository.findById(bicycleID);
+	public StopRentResponse endJourney(StopRent stopRent) {
+		Optional<BicycleModel> bicycle = bicycleModelRepository.findById(stopRent.getBicycleID());
 		if (bicycle.isPresent()) {
 			if (bicycle.get().isStatus() && bicycle.get().isUsing()) {
-				updateBicycle(bicycle.get());
-				Optional<RentBicycleModel> rent = rentbicycleRepo.findById(rentID);
-				if (rent.isPresent()) {
+				updateBicycle(bicycle.get(),stopRent.getStationID());
+				Optional<RentBicycleModel> rent = rentbicycleRepo.findById(stopRent.getRentID());
+				var station= stationService.getStationByID(stopRent.getStationID());	
+				if (rent.isPresent()&& station!=null) {
 					RentBicycleModel rented = rent.get();
 					float money = 0;
 					Instant startTime = Instant.ofEpochMilli(rent.get().getBeginTimeRent());
@@ -115,26 +145,32 @@ public class BicycleService {
 					var rentBicycle = RentBicycleModel.builder().id(rented.getId())
 							.beginTimeRent(rented.getBeginTimeRent())
 							.coordinateStartRent(rented.getCoordinateStartRent())
-							.coordinateEndRent(rented.getCoordinateStartRent())
-							.userModelRent(rented.getUserModelRent()).numFallBicycle(0)
-							.bicycleModel(rented.getBicycleModel()).coordinateEndRent(rented.getCoordinateStartRent())
+							.coordinateEndRent(station.getCoordinate())
+							.userModelRent(rented.getUserModelRent())
+							.numFallBicycle(rented.getNumFallBicycle())
+							.bicycleModel(rented.getBicycleModel())
 							.endTimeRent(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 							.totalCharge(money).build();
 					rentbicycleRepo.save(rentBicycle);
-					TransactionRequest  transactionRequest= new TransactionRequest(money,"Riding "+bicycleID,true, true);
+					TransactionRequest  transactionRequest= new TransactionRequest(money,"Riding "+stopRent.getBicycleID(),true, true);
 					transactionService.createTransactionHistory(rented.getUserModelRent(), transactionRequest);
-					Callable<Boolean> callable = () -> mqttService.rentBicycle(bicycleID,"1");
-
+					Callable<Boolean> callable = () -> mqttService.rentBicycle(stopRent.getBicycleID(),"1");
 					ExecutorService executor = Executors.newSingleThreadExecutor();
 					Future<Boolean> future = executor.submit(callable);
 
 					Boolean result = null;
 					try {
 						result = future.get();
+						if(result==true) {
+							StopRentResponse stopRentResp= StopRentResponse.builder()
+									.idRent(rented.getId())
+									.numFall(rented.getNumFallBicycle())
+									.build();
+						return stopRentResp;
+						}
 					} catch (InterruptedException | ExecutionException e) {
 						e.printStackTrace();
 					}
-					return authService.getUser(null, rented.getUserModelRent());
 				}
 
 			}
@@ -169,5 +205,23 @@ public class BicycleService {
 		return true;
 		}
 		return false;
+	}
+	public void createBicycle(List<BicycleReq> bicycles) {
+		List<BicycleModel> bicyclelList= new ArrayList<BicycleModel>();
+		for(int i=0;i<bicycles.size();i++) {
+			var coordinate = coordinateRepo.findById(bicycles.get(i).getCoordinate_id());
+			var station= stationService.getStationByID(bicycles.get(i).getId_bicycle_station());			
+					if(coordinate.isPresent() && station!=null) {
+				bicyclelList.add(BicycleModel
+						.builder()
+						.id(bicycles.get(i).getId())
+						.bicycleStationModel(station)			
+						.coordinate(coordinate.get())
+						.isUsing(bicycles.get(i).isUsing())
+						.isStatus(bicycles.get(i).isStatus())
+						.build());
+			}
+		}
+		bicycleModelRepository.saveAll(bicyclelList);	
 	}
 }

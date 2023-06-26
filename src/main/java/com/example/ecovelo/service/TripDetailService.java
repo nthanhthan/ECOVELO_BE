@@ -43,24 +43,27 @@ public class TripDetailService {
 
 		if (!listRent.isEmpty()) {
 			for (RentBicycleModel item : listRent) {
-				CoordinateResponse coordinateBegin = CoordinateResponse.builder()
-						.lat(item.getCoordinateStartRent().getLat()).lng(item.getCoordinateStartRent().getLng())
-						.build();
-				CoordinateResponse coordinateEnd = CoordinateResponse.builder()
-						.lat(item.getCoordinateEndRent().getLat()).lng(item.getCoordinateEndRent().getLng()).build();
-				List<CoordinateResponse> listCoordinate = new ArrayList<>();
-
-				List<TripDetail> listTripbyUser = item.getCoordinateItinerary();
-				for (TripDetail trip : listTripbyUser) {
-					CoordinateResponse coordinate = CoordinateResponse.builder().lat(trip.getLat()).lng(trip.getLng())
+				if (item.getCoordinateEndRent() != null) {
+					CoordinateResponse coordinateBegin = CoordinateResponse.builder()
+							.lat(item.getCoordinateStartRent().getLat()).lng(item.getCoordinateStartRent().getLng())
 							.build();
-					listCoordinate.add(coordinate);
+					CoordinateResponse coordinateEnd = CoordinateResponse.builder()
+							.lat(item.getCoordinateEndRent().getLat()).lng(item.getCoordinateEndRent().getLng())
+							.build();
+					List<CoordinateResponse> listCoordinate = new ArrayList<>();
+
+					List<TripDetail> listTripbyUser = item.getCoordinateItinerary();
+					for (TripDetail trip : listTripbyUser) {
+						CoordinateResponse coordinate = CoordinateResponse.builder().lat(trip.getLat())
+								.lng(trip.getLng()).build();
+						listCoordinate.add(coordinate);
+					}
+					DetailJourneyResponse detailJourney = DetailJourneyResponse.builder().id(item.getId())
+							.coordinateBeginStaion(coordinateBegin).coordinateEndStaion(coordinateEnd)
+							.beginTimeRent(item.getBeginTimeRent()).endTimeRent(item.getEndTimeRent())
+							.money(item.getTotalCharge()).detailTrip(listCoordinate).build();
+					listDetail.add(detailJourney);
 				}
-				DetailJourneyResponse detailJourney = DetailJourneyResponse.builder().id(item.getId())
-						.coordinateBeginStaion(coordinateBegin).coordinateEndStaion(coordinateEnd)
-						.beginTimeRent(item.getBeginTimeRent()).endTimeRent(item.getEndTimeRent())
-						.money(item.getTotalCharge()).detailTrip(listCoordinate).build();
-				listDetail.add(detailJourney);
 			}
 			return listDetail;
 		}
@@ -68,15 +71,12 @@ public class TripDetailService {
 	}
 
 	public List<DetailTripResponse> getAllTrip() {
-		List<DetailTripResponse> listDetail= new ArrayList<>();;
-		List<TripDetail> listTrip =tripDetailRepo.findAll();
-		for(TripDetail element : listTrip) {
-			DetailTripResponse trip= DetailTripResponse.builder()
-					.id(element.getId())
-					.lat(element.getLat())
-					.lng(element.getLng())
-					.rentBicycleModel(element.getRentBicycleModel().getId())
-					.build();
+		List<DetailTripResponse> listDetail = new ArrayList<>();
+		;
+		List<TripDetail> listTrip = tripDetailRepo.findAll();
+		for (TripDetail element : listTrip) {
+			DetailTripResponse trip = DetailTripResponse.builder().id(element.getId()).lat(element.getLat())
+					.lng(element.getLng()).rentBicycleModel(element.getRentBicycleModel().getId()).build();
 			listDetail.add(trip);
 		}
 		return listDetail;

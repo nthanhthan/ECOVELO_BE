@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class StopRent {
-	private int rentID;
-	private String bicycleID;
-	private int stationID;
+public class ReviewRequest {
+	int idRent;
+	String comment;
+	String reasonFall;
+	int numStar;
 }

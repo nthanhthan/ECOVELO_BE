@@ -13,6 +13,8 @@ import com.example.ecovelo.response.CoordinateResponse;
 import com.example.ecovelo.response.StationResponse;
 
 import lombok.RequiredArgsConstructor;
+
+import com.example.ecovelo.entity.BicycleModel;
 import com.example.ecovelo.entity.BicycleStationModel;
 
 @Service
@@ -26,12 +28,19 @@ public class StationService {
 		List<StationResponse> listStationResponse= new ArrayList<StationResponse>();
 		if(listStation!=null && !listStation.isEmpty()) {
 			for(BicycleStationModel station :listStation){
+				List<BicycleModel>  bicycles= station.getBicycleModels();
+				int num=0;
+				for(BicycleModel bicycle :bicycles ) {
+					if(bicycle.isStatus() && !bicycle.isUsing()) {
+						num+=1;
+					}
+				}			
 				listStationResponse.add(StationResponse.builder()
 						.id(station.getId())
 						.lat(station.getCoordinate().getLat())
 						.lng(station.getCoordinate().getLng())
 						.address(station.getCoordinate().getAddress())
-						.numBicycle(station.getNumBicycle())
+						.numBicycle(num)
 						.build());
 			}
 			
@@ -64,6 +73,26 @@ public class StationService {
 		return null;
 		
 		
+	}
+	public BicycleStationModel  getStationByID(int id) {
+		var station= bicycleStationModelRepository.findById(id);
+		if(station.isPresent()) {
+			return station.get();
+		}else {
+			return null;
+		}
+	}
+	public void numBicycleOfStation() {
+		List<BicycleStationModel>  listStation= bicycleStationModelRepository.findAll();
+		for(BicycleStationModel sation : listStation) {
+			BicycleStationModel bicycleStation= BicycleStationModel.builder()
+					.id(sation.getId())
+					.coordinate(sation.getCoordinate())
+					.numBicycle(sation.getBicycleModels().size())
+					.build();
+			bicycleStationModelRepository.save(bicycleStation);
+		}
+	
 	}
 
 }
