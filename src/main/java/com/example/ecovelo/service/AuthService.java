@@ -112,6 +112,7 @@ public class AuthService {
 			}
 		}
 		return AuthResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).userResponse(userResponse)
+				.admin(accountModel.getRole().equals(Role.ADMIN))
 				.expired(jwtService.extractExpiration(jwtToken).getTime()).build();
 	}
 

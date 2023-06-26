@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class StopRent {
-	private int rentID;
-	private String bicycleID;
-	private int stationID;
+public class BicycleReq {
+	String id;
+	boolean status;
+	boolean using;
+	int id_bicycle_station;
+	int coordinate_id;
 }

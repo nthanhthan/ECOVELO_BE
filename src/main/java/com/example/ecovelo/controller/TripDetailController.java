@@ -52,34 +52,35 @@ public class TripDetailController {
 	@GetMapping("/exportTrip")
 	public ResponseEntity<byte[]> exportToExcel() throws IOException {
 		List<DetailTripResponse> listTrip = tripService.getAllTrip();
-		Workbook workbook = new XSSFWorkbook();
-		Sheet sheet = workbook.createSheet("Data");
-		int rowIndex = 0;
-		Row headerRow = sheet.createRow(rowIndex++);
-		headerRow.createCell(0).setCellValue("ID");
-		headerRow.createCell(1).setCellValue("Lat");
-		headerRow.createCell(2).setCellValue("Lng");
-		headerRow.createCell(3).setCellValue("IDRENT");
+		try (Workbook workbook = new XSSFWorkbook()) {
+			Sheet sheet = workbook.createSheet("Data");
+			int rowIndex = 0;
+			Row headerRow = sheet.createRow(rowIndex++);
+			headerRow.createCell(0).setCellValue("ID");
+			headerRow.createCell(1).setCellValue("Lat");
+			headerRow.createCell(2).setCellValue("Lng");
+			headerRow.createCell(3).setCellValue("IDRENT");
 
-		for (DetailTripResponse d : listTrip) {
-			Row row = sheet.createRow(rowIndex++);
-			row.createCell(0).setCellValue(d.getId());
-			row.createCell(1).setCellValue(d.getLat());
-			row.createCell(2).setCellValue(d.getLng());
-			row.createCell(3).setCellValue(d.getRentBicycleModel());
+			for (DetailTripResponse d : listTrip) {
+				Row row = sheet.createRow(rowIndex++);
+				row.createCell(0).setCellValue(d.getId());
+				row.createCell(1).setCellValue(d.getLat());
+				row.createCell(2).setCellValue(d.getLng());
+				row.createCell(3).setCellValue(d.getRentBicycleModel());
+			}
+
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			workbook.write(outputStream);
+			byte[] byteArray = outputStream.toByteArray();
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.xlsx");
+			headers.setContentType(
+					MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			headers.setContentLength(byteArray.length);
+
+			return new ResponseEntity<>(byteArray, headers, HttpStatus.OK);
 		}
-
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		workbook.write(outputStream);
-		byte[] byteArray = outputStream.toByteArray();
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.xlsx");
-		headers.setContentType(
-				MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		headers.setContentLength(byteArray.length);
-
-		return new ResponseEntity<>(byteArray, headers, HttpStatus.OK);
 	}
 
 }

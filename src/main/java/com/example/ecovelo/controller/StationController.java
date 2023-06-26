@@ -30,4 +30,8 @@ public class StationController {
 		 
 		 stationService.createStation(stations);
 	 }
+	 @GetMapping("/numBicycle")
+	  public void numBicycle() {
+	    stationService.numBicycleOfStation();
+	  }
 }
