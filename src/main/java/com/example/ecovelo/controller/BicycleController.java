@@ -66,4 +66,9 @@ public class BicycleController {
 	public void createBicyle(@RequestBody List<BicycleReq> biclyeList) {
 		bicycleService.createBicycle(biclyeList);
 	}
+	@GetMapping("/count-rent")
+	public ResponseEntity<Long> getRent() {
+		return ResponseEntity.ok(bicycleService.getCountRentBicycle());
+	
+	}
 }

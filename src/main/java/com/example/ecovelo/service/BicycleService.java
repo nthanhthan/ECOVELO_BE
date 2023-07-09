@@ -224,4 +224,7 @@ public class BicycleService {
 		}
 		bicycleModelRepository.saveAll(bicyclelList);	
 	}
+	public long getCountRentBicycle() {
+		return rentbicycleRepo.count();
+	}
 }
