@@ -1,4 +1,6 @@
 package com.example.ecovelo.service;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,6 +13,7 @@ import com.example.ecovelo.entity.AccountModel;
 import com.example.ecovelo.entity.PersonalLegalModel;
 import com.example.ecovelo.entity.PersonalLegalUserModel;
 import com.example.ecovelo.entity.RefreshToken;
+import com.example.ecovelo.entity.RentBicycleModel;
 import com.example.ecovelo.entity.UserModel;
 import com.example.ecovelo.enums.Role;
 import com.example.ecovelo.exception.UnAuthorizeException;
@@ -18,6 +21,7 @@ import com.example.ecovelo.jwt.JwtTokenProvider;
 import com.example.ecovelo.repository.AccountModelRepository;
 import com.example.ecovelo.repository.LegalRepository;
 import com.example.ecovelo.repository.RefreshTokenRepository;
+import com.example.ecovelo.repository.RentBicycleModelRepository;
 import com.example.ecovelo.repository.UserModelRepository;
 import com.example.ecovelo.repository.VerifyAccountRepository;
 import com.example.ecovelo.request.AuthRequest;
@@ -26,6 +30,7 @@ import com.example.ecovelo.request.TransactionRequest;
 import com.example.ecovelo.request.VerifyAccountReq;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.response.TransactionResp;
+import com.example.ecovelo.response.UserAdminResponse;
 import com.example.ecovelo.response.UserResponse;
 
 import io.jsonwebtoken.io.IOException;
@@ -45,7 +50,10 @@ public class AuthService {
 	private final TransactionHistoryService transactionService;
 	private final VerifyAccountRepository verifyRepo;
 	private final LegalRepository legalRepo;
+	private final PredictStationService predict;	
+	private final RentBicycleModelRepository rentbicycleRepo;
 
+	
 	private UserModel saveUserModel(RegisterRequest request) {
 		var userModel = UserModel.builder().nameUser(request.getNameUser()).email(request.getEmail()).verify(false)
 				.build();
@@ -111,6 +119,7 @@ public class AuthService {
 				userResponse.setProPoint(accountModel.getUserModel().getProPoint());
 			}
 		}
+		predict.loadLib();
 		return AuthResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).userResponse(userResponse)
 				.admin(accountModel.getRole().equals(Role.ADMIN))
 				.expired(jwtService.extractExpiration(jwtToken).getTime()).build();
@@ -229,4 +238,96 @@ public class AuthService {
 		}
 		return false;
 	}
+    public List<UserAdminResponse> getListUser(String token) {
+    	List<UserAdminResponse> listReponse=  new ArrayList<>();;
+    	UserModel user = getUserByToken(token);
+    	if(user!=null) {
+    		List<UserModel> listUser =userRepository.findAll();
+    		if(!listUser.isEmpty()) {
+    			for(UserModel userModel :listUser ) {
+    				boolean checkLegal=verifyRepo.existsByUserModelLegal(userModel);
+    				List<RentBicycleModel> listRent=(rentbicycleRepo.findByUserModelRent(userModel));
+    				int numFall=0;
+    				for(RentBicycleModel rent:listRent ) {
+    					numFall +=rent.getNumFallBicycle();
+    				}
+    				var userResp = UserResponse.builder()
+    						.userId(userModel.getId())
+    						.nameUser(userModel.getNameUser())
+    						.email(userModel.getEmail())
+    						.mainPoint(userModel.getMainPoint())
+    						.proPoint(userModel.getProPoint())
+    						.verify(userModel.isVerify())
+    						.isProccessing(checkLegal)
+    						.build();
+    				UserAdminResponse userAdmin= UserAdminResponse.builder()
+    						.userModel(userResp)
+    						.totalRent(listRent.size())
+    						.numFall(numFall)
+    						.build();
+    				listReponse.add(userAdmin);						
+    			}
+    		}
+    	  
+    	  	
+    	}
+    	return listReponse;
+    }
+  public boolean confirmAuthencation(int idUser) {
+	 Optional<UserModel> userModel=  userRepository.findById(idUser);
+	 if(userModel.isPresent()) {
+		 UserModel upDateUser = UserModel.builder().id(userModel.get().getId())
+				 .email(userModel.get().getEmail())
+				 .nameUser(userModel.get().getNameUser())
+				 .mainPoint(userModel.get().getMainPoint())
+				 .proPoint(userModel.get().getProPoint())
+				 .verify(true)
+				 .build();
+		 userRepository.save(upDateUser);
+		 return true;
+	 }
+	 return false;
+    }
+  public UserAdminResponse getDetaiUser(int userID) {
+  	Optional<UserModel> user = userRepository.findById(userID);
+  	String frontSide="";
+  	String backSide="";
+  	if(user.isPresent()) {
+  		Optional<PersonalLegalUserModel> personnal;
+  	UserModel userModel=user.get();
+  				boolean checkLegal=verifyRepo.existsByUserModelLegal(userModel);
+  				if(checkLegal) {
+  				personnal= verifyRepo.findByUserModelLegal(userModel);
+  				frontSide= personnal.get().getIdentifyFront();
+  				backSide= personnal.get().getIdentifyBackside();
+  				}
+  				List<RentBicycleModel> listRent=(rentbicycleRepo.findByUserModelRent(userModel));
+  				int numFall=0;
+  				for(RentBicycleModel rent:listRent ) {
+  					numFall +=rent.getNumFallBicycle();
+  				}
+  				var userResp = UserResponse.builder()
+  						.userId(userModel.getId())
+  						.nameUser(userModel.getNameUser())
+  						.email(userModel.getEmail())
+  						.mainPoint(userModel.getMainPoint())
+  						.proPoint(userModel.getProPoint())
+  						.verify(userModel.isVerify())
+  						.isProccessing(checkLegal)
+  						.build();
+  				UserAdminResponse userAdmin= UserAdminResponse.builder()
+  						.userModel(userResp)
+  						.totalRent(listRent.size())
+  						.numFall(numFall)
+  						.frontSide(frontSide)
+  						.backSide(backSide)
+  						.build();
+  				return userAdmin;		
+  		
+  	}
+  	return null;
+  	  	
+ 
+  }
+	
 }

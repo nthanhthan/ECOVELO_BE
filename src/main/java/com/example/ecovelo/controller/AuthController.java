@@ -1,8 +1,11 @@
 package com.example.ecovelo.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -14,6 +17,7 @@ import com.example.ecovelo.request.TransactionRequest;
 import com.example.ecovelo.request.VerifyAccountReq;
 import com.example.ecovelo.response.AuthResponse;
 import com.example.ecovelo.response.TransactionResp;
+import com.example.ecovelo.response.UserAdminResponse;
 import com.example.ecovelo.response.UserResponse;
 import com.example.ecovelo.service.AuthService;
 import com.example.ecovelo.service.LogoutService;
@@ -74,6 +78,21 @@ public class AuthController {
 	public ResponseEntity<Boolean> verifyAccount(
 			@RequestBody VerifyAccountReq verifyAcc) {
 		return ResponseEntity.ok(service.verifyAccount(verifyAcc));
+	}
+	@GetMapping("/getAllUser")
+	public ResponseEntity<List<UserAdminResponse>> getAllUser(@RequestHeader(name = "Authorization") String token) {
+		final String jwt = token.substring(7);
+		return ResponseEntity.ok(service.getListUser(jwt));
+	}
+	
+	@GetMapping("/confirm-authencation/{idUser}")
+	public ResponseEntity<?> fallBicycle(@PathVariable("idUser") int  idUser) {
+		service.confirmAuthencation(idUser);
+		return ResponseEntity.ok().build();
+	}
+	@GetMapping("/getDetailUser/{idUser}")
+	public ResponseEntity<UserAdminResponse> getDetailUser(@PathVariable("idUser") int  idUser) {
+		return ResponseEntity.ok(service.getDetaiUser(idUser));
 	}
 
 }
